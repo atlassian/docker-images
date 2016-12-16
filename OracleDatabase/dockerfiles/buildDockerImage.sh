@@ -10,7 +10,7 @@
 # 
 
 usage() {
-cat << EOF
+  cat << EOF
 
 Usage: buildDockerImage.sh -v [version] [-e | -s | -x] [-i]
 Builds a Docker Image for Oracle Database.
@@ -30,21 +30,31 @@ LICENSE CDDL 1.0 + GPL 2.0
 Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
 
 EOF
-exit 0
+  exit 0
 }
 
 # Validate packages
 checksumPackages() {
-  echo "Checking if required packages are present and valid..."
-  md5sum -c Checksum.$EDITION
-  if [ "$?" -ne 0 ]; then
-    echo "MD5 for required packages to build this image did not match!"
-    echo "Make sure to download missing files in folder $VERSION."
-    exit $?
+  if hash md5sum 2>/dev/null; then
+    echo "Checking if required packages are present and valid..."
+    md5sum -c Checksum.$EDITION
+    if [ "$?" -ne 0 ]; then
+      echo "MD5 for required packages to build this image did not match!"
+      echo "Make sure to download missing files in folder $VERSION."
+      exit $?
+    fi
+  else
+    echo "Ignored MD5 sum, 'md5sum' command not available.";
   fi
 }
 
-if [ "$#" -eq 0 ]; then usage; fi
+##############
+#### MAIN ####
+##############
+
+if [ "$#" -eq 0 ]; then
+  usage;
+fi
 
 # Parameters
 ENTERPRISE=0
@@ -107,29 +117,31 @@ if [ ! "$SKIPMD5" -eq 1 ]; then
 else
   echo "Ignored MD5 checksum."
 fi
-
-echo "====================="
+echo "=========================="
+echo "DOCKER version:"
+docker version
+echo "=========================="
 
 # Proxy settings
 PROXY_SETTINGS=""
 if [ "${http_proxy}" != "" ]; then
-  PROXY_SETTINGS="$PROXY_SETTINGS --build-arg=\"http_proxy=${http_proxy}\""
+  PROXY_SETTINGS="$PROXY_SETTINGS --build-arg http_proxy=${http_proxy}"
 fi
 
 if [ "${https_proxy}" != "" ]; then
-  PROXY_SETTINGS="$PROXY_SETTINGS --build-arg=\"https_proxy=${https_proxy}\""
+  PROXY_SETTINGS="$PROXY_SETTINGS --build-arg https_proxy=${https_proxy}"
 fi
 
 if [ "${ftp_proxy}" != "" ]; then
-  PROXY_SETTINGS="$PROXY_SETTINGS --build-arg=\"ftp_proxy=${ftp_proxy}\""
+  PROXY_SETTINGS="$PROXY_SETTINGS --build-arg ftp_proxy=${ftp_proxy}"
 fi
 
 if [ "${no_proxy}" != "" ]; then
-  PROXY_SETTINGS="$PROXY_SETTINGS --build-arg=\"no_proxy=${no_proxy}\""
+  PROXY_SETTINGS="$PROXY_SETTINGS --build-arg no_proxy=${no_proxy}"
 fi
 
 if [ "$PROXY_SETTINGS" != "" ]; then
-  echo "Proxy settings were found and will be used during build."
+  echo "Proxy settings were found and will be used during the build."
 fi
 
 # ################## #

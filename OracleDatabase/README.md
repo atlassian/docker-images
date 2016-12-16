@@ -8,7 +8,7 @@ This project offers sample Dockerfiles for both Oracle Database 12c (12.1.0.2) E
 The `buildDockerImage.sh` script is just a utility shell script that performs MD5 checks and is an easy way for beginners to get started. Expert users are welcome to directly call `docker build` with their prefered set of parameters.
 
 ### Building Oracle Database Docker Install Images
-**IMPORTANT:** You will have to provide the installation binaries of Oracle Database and put them into the `dockerfiles/<version>` folder. You only need to provide the binaries for the edition you are going to install. You also have to make sure to have internet connectivity for yum.
+**IMPORTANT:** You will have to provide the installation binaries of Oracle Database and put them into the `dockerfiles/<version>` folder. You only need to provide the binaries for the edition you are going to install. You also have to make sure to have internet connectivity for yum. Note that you must not uncompress the binaries. The script will handle that for you and fail if you uncompress them manually!
 
 Before you build the image make sure that you have provided the installation binaries and put them into the right folder. Once you have chosen which edition and version you want to build an image of, go into the **dockerfiles** folder and run the **buildDockerImage.sh** script as root or with `sudo` privileges:
 
@@ -44,13 +44,22 @@ You may extend the image with your own Dockerfile and create the users and table
 #### Running Oracle Database Enterprise and Standard Edition in a Docker container
 To run your Oracle Database Docker image use the **docker run** command as follows:
 
-	docker run --name oracle -p 1521:1521 -p 5500:5500 -e ORACLE_SID=<your SID> -e ORACLE_PDB=<your PDB name> oracle/database:12.1.0.2-ee
+	docker run --name <container name> \
+	-p <host port>:1521 -p <host port>:5500 \
+	-e ORACLE_SID=<your SID> \
+	-e ORACLE_PDB=<your PDB name> \
+	-v [<host mount point>:]/opt/oracle/oradata \
+	oracle/database:12.1.0.2-ee
 	
 	Parameters:
-	   --name: The name of the container itself
-	   -p:     The port mapping of the host port to the container port. Two ports are exposed: 1521 (Oracle Listener), 5500 (OEM Express)
+	   --name:        The name of the container (default: auto generated)
+	   -p:            The port mapping of the host port to the container port. 
+	                  Two ports are exposed: 1521 (Oracle Listener), 5500 (OEM Express)
 	   -e ORACLE_SID: The Oracle Database SID that should be used (default: ORCLCDB)
 	   -e ORACLE_PDB: The Oracle Database PDB name that should be used (default: ORCLPDB1)
+	   -v             The data volume to use for the database.
+	                  Has to be owned by the Unix user "oracle" or set appropriately.
+	                  If omitted the database will not be persisted over container recreation.
 
 Once the container has been started and the database created you can connect to it just like to any other database:
 
@@ -69,17 +78,26 @@ On the first startup of the container a random password will be generated for th
 	ORACLE AUTO GENERATED PASSWORD FOR SYS, SYSTEM AND PDBAMIN:
 
 The password for those accounts can be changed via the **docker exec** command. **Note**, the container has to be running:
-	docker exec oracle ./setPassword.sh <your password>
+
+	docker exec <container name> ./setPassword.sh <your password>
 
 #### Running Oracle Database Express Edition in a Docker container
 To run your Oracle Database Express Edition Docker image use the **docker run** command as follows:
 
-	docker run --name oraclexe --shm-size=1g -p 1521:1521 -p 8080:8080 oracle/database:11.2.0.2-xe
+	docker run --name <container name> \
+	--shm-size=1g \
+	-p 1521:1521 -p 8080:8080 \
+	-v [<host mount point>:]/u01/app/oracle/oradata \
+	oracle/database:11.2.0.2-xe
 	
 	Parameters:
-	   --name: The name of the container itself
+	   --name:     The name of the container (default: auto generated)
 	   --shm-size: Amount of Linux shared memory
-	   -p:     The port mapping of the host port to the container port. Two ports are exposed: 1521 (Oracle Listener), 5500 (OEM Express)
+	   -p:         The port mapping of the host port to the container port.
+	               Two ports are exposed: 1521 (Oracle Listener), 5500 (OEM Express)
+	   -v          The data volume to use for the database.
+	               Has to be owned by the Unix user "oracle" or set appropriately.
+	               If omitted the database will not be persisted over container recreation.
 
 There are two ports that are exposed in this image:
 * 1521 which is the port to connect to the Oracle Database.
@@ -103,7 +121,7 @@ You may use the same Docker image you used to start the database, to run `sqlplu
 
 Another option is to use `docker exec` and run `sqlplus` from within the same container already running the database:
 
-	docker exec -ti <container-id> sqlplus pdbadmin@ORCLPDB1
+	docker exec -ti <container name> sqlplus pdbadmin@ORCLPDB1
 
 ## Support
 Currently Oracle Database on Docker is **NOT** supported by Oracle. Use these files at your own discretion.
