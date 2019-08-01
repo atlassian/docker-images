@@ -22,7 +22,9 @@ export ORACLE_SID=${1:-ORCLCDB}
 export ORACLE_PDB=${2:-ORCLPDB1}
 
 # Auto generate ORACLE PWD if not passed on
-export ORACLE_PWD=${3:-"`openssl rand -base64 8`1"}
+# export ORACLE_PWD=${3:-"`openssl rand -base64 8`1"}
+# hardcode password if not provided
+export ORACLE_PWD=${ORACLE_PWD:-oracle}
 echo "ORACLE PASSWORD FOR SYS, SYSTEM AND PDBADMIN: $ORACLE_PWD";
 
 # Replace place holders in response file
@@ -56,6 +58,8 @@ echo "LISTENER =
 
 DEDICATED_THROUGH_BROKER_LISTENER=ON
 DIAG_ADR_ENABLED = off
+USE_SID_AS_SERVICE_listener=on
+
 " > $ORACLE_HOME/network/admin/listener.ora
 
 # Start LISTENER and run DBCA

@@ -87,7 +87,10 @@ function _kill() {
 ############# Create DB ################
 function createDB {
    # Auto generate ORACLE PWD if not passed on
-   export ORACLE_PWD=${ORACLE_PWD:-"`openssl rand -hex 8`"}
+   # export ORACLE_PWD=${ORACLE_PWD:-"`openssl rand -hex 8`"}
+   # hardcode password if not provided
+   export ORACLE_PWD=${ORACLE_PWD:-oracle}
+
    echo "ORACLE PASSWORD FOR SYS AND SYSTEM: $ORACLE_PWD";
    
    # Set character set
