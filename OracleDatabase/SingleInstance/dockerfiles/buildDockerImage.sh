@@ -6,7 +6,7 @@
 # 
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 # 
-# Copyright (c) 2014-2017 Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2014-2019 Oracle and/or its affiliates. All rights reserved.
 # 
 
 usage() {
@@ -28,10 +28,10 @@ Parameters:
 
 LICENSE UPL 1.0
 
-Copyright (c) 2014-2018 Oracle and/or its affiliates. All rights reserved.
+Copyright (c) 2014-2019 Oracle and/or its affiliates. All rights reserved.
 
 EOF
-  exit 0;
+
 }
 
 # Validate packages
@@ -70,7 +70,7 @@ checkDockerVersion() {
 ENTERPRISE=0
 STANDARD=0
 EXPRESS=0
-VERSION="18.3.0"
+VERSION="19.3.0"
 SKIPMD5=0
 DOCKEROPS=""
 MIN_DOCKER_VERSION="17.09"
@@ -78,14 +78,14 @@ DOCKERFILE="Dockerfile"
 
 if [ "$#" -eq 0 ]; then
   usage;
+  exit 1;
 fi
-
-checkDockerVersion
 
 while getopts "hesxiv:o:" optname; do
   case "$optname" in
     "h")
       usage
+      exit 0;
       ;;
     "i")
       SKIPMD5=1
@@ -116,6 +116,8 @@ while getopts "hesxiv:o:" optname; do
   esac
 done
 
+checkDockerVersion
+
 # Which Edition should be used?
 if [ $((ENTERPRISE + STANDARD + EXPRESS)) -gt 1 ]; then
   usage
@@ -124,7 +126,7 @@ elif [ $ENTERPRISE -eq 1 ]; then
 elif [ $STANDARD -eq 1 ]; then
   EDITION="se2"
 elif [ $EXPRESS -eq 1 ]; then
-  if [ "$VERSION" == "18.3.0" ]; then
+  if [ "$VERSION" == "18.4.0" ]; then
     EDITION="xe"
   elif [ "$VERSION" == "11.2.0.2" ]; then
     EDITION="xe"
@@ -136,7 +138,7 @@ elif [ $EXPRESS -eq 1 ]; then
 fi;
 
 # Which Dockerfile should be used?
-if [ "$VERSION" == "12.1.0.2" ] || [ "$VERSION" == "11.2.0.2" ]; then
+if [ "$VERSION" == "12.1.0.2" ] || [ "$VERSION" == "11.2.0.2" ] || [ "$VERSION" == "18.4.0" ]; then
   DOCKERFILE="$DOCKERFILE.$EDITION"
 fi;
 
