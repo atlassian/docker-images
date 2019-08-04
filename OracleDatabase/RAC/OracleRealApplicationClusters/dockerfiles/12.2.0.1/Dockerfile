@@ -1,6 +1,6 @@
 # LICENSE UPL 1.0
 #
-# Copyright (c) 1982-2018 Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 1982-2019 Oracle and/or its affiliates. All rights reserved.
 #
 # ORACLE DOCKERFILES PROJECT
 # --------------------------
@@ -70,6 +70,10 @@ ENV SETUP_LINUX_FILE="setupLinuxEnv.sh" \
     USER_SCRIPTS_FILE="runUserScripts.sh" \
     REMOTE_LISTENER_FILE="remoteListener.sh" \ 
     INSTALL_DB_BINARIES_FILE="installDBBinaries.sh" \
+    RESET_OS_PASSWORD="resetOSPassword.sh" \
+    MULTI_NODE_INSTALL="MultiNodeInstall.py" \ 
+    RESET_OS_PASSWORD="resetOSPassword.sh" \
+    MULTI_NODE_INSTALL="MultiNodeInstall.py" \
 # COMMON ENV Variable
    FUNCTIONS="functions.sh" \
    COMMON_SCRIPTS="/common_scripts" \
@@ -89,10 +93,10 @@ ENV  INSTALL_SCRIPTS=$INSTALL_DIR/install \
 # Copy binaries
 # -------------
 # COPY Binaries
-COPY $INSTALL_FILE_1 $SETUPDOCKERORACLEINIT $INSTALL_GRID_PATCH $SETUP_LINUX_FILE $GRID_PATCH $GRID_SETUP_FILE $INSTALL_GRID_BINARIES_FILE $FIXUP_PREQ_FILE $INSTALL_FILE_2 $DB_SETUP_FILE $CHECK_SPACE_FILE $DB_INSTALL_RSP $INSTALL_DB_BINARIES_FILE $ENABLE_RAC_FILE $INSTALL_SCRIPTS/
+COPY $INSTALL_FILE_1 $SETUPDOCKERORACLEINIT $INSTALL_GRID_PATCH $SETUP_LINUX_FILE $GRID_PATCH $GRID_SETUP_FILE $INSTALL_GRID_BINARIES_FILE $FIXUP_PREQ_FILE $INSTALL_FILE_2 $DB_SETUP_FILE $CHECK_SPACE_FILE $DB_INSTALL_RSP $INSTALL_DB_BINARIES_FILE $ENABLE_RAC_FILE $GRID_HOME_CLEANUP $ORACLE_HOME_CLEANUP $INSTALL_SCRIPTS/
 
 # Setup Scripts
-COPY $RUN_FILE $ADDNODE $ADDNODE_RSP $SETUPSSH $FUNCTIONS $CONFIGGRID $GRID_INSTALL_RSP $DBCA_RSP $PWD_FILE $CHECK_DB_FILE $USER_SCRIPTS_FILE $STOP_FILE $CHECK_DB_FILE $REMOTE_LISTENER_FILE $SETUPGRIDENV $DELNODE $SCRIPT_DIR/ 
+COPY $RUN_FILE $ADDNODE $ADDNODE_RSP $SETUPSSH $FUNCTIONS $CONFIGGRID $GRID_INSTALL_RSP $DBCA_RSP $PWD_FILE $CHECK_DB_FILE $USER_SCRIPTS_FILE $STOP_FILE $CHECK_DB_FILE $REMOTE_LISTENER_FILE $SETUPGRIDENV $DELNODE $RESET_OS_PASSWORD $MULTI_NODE_INSTALL $SCRIPT_DIR/ 
 
 RUN chmod 755 $INSTALL_SCRIPTS/*.sh  && \
     sync && \
@@ -110,6 +114,8 @@ RUN chmod 755 $INSTALL_SCRIPTS/*.sh  && \
     su  oracle  -c  "$INSTALL_DIR/install/$ENABLE_RAC_FILE" && \
     $INVENTORY/orainstRoot.sh && \
     $DB_HOME/root.sh && \
+    su  grid -c "$INSTALL_SCRIPTS/$GRID_HOME_CLEANUP" && \
+    su  oracle -c "$INSTALL_SCRIPTS/$ORACLE_HOME_CLEANUP" && \
     $INSTALL_DIR/install/$FIXUP_PREQ_FILE && \
     rm -rf $INSTALL_DIR/install && \
     sync && \
@@ -122,6 +128,7 @@ RUN chmod 755 $INSTALL_SCRIPTS/*.sh  && \
     echo "/u01/app/12.2.0/grid/dockeroracleinit/lib" > /etc/ld.so.conf.d/dockeroracleinit.conf && \
     ldconfig && \
     rm -f /etc/rc.d/init.d/oracle-database-server-12cR2-preinstall-firstboot && \
+    rm -f /etc/sysctl.d/99-sysctl.conf && \
     ln -s $GRID_HOME/bin/$DOCKERORACLEINIT /usr/sbin/oracleinit && \
     chmod +x /etc/rc.d/rc.local  && \
     sync
